@@ -64,25 +64,28 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	log.Printf("Registered procedure %s", procedureCreateAccount)
 	defer session.Unregister(reg.ID)
 
 	onSub, err := session.Subscribe(topicSetOnline, userManager.statusOnlineHandler(db), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("Subscribed to %s", topicSetOnline)
 	defer session.Unsubscribe(onSub)
 
 	offSub, err := session.Subscribe(topicSetOffline, userManager.statusOfflineHandler, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("Subscribed to %s", topicSetOffline)
 	defer session.Unsubscribe(offSub)
 
 	onlineUsersReg, err := session.Register(procedureGetOnlineUsers, userManager.onlineUser, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("Registered procedure %s", procedureGetOnlineUsers)
 	defer session.Unregister(onlineUsersReg.ID)
 
 	// Close if SIGINT (CTRL-c) received.
