@@ -44,3 +44,10 @@ func GetUsers(db *gorm.DB) ([]User, error) {
 	err := db.Find(&users).Error
 	return users, err
 }
+
+// GetUserByID retrieves a user from the database by ID.
+func GetUserByID(db *gorm.DB, id uint) (User, error) {
+	var user User
+	err := db.First(&user, id).Error
+	return user, err
+}

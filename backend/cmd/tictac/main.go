@@ -17,6 +17,9 @@ const (
 
 	procedureCreateAccount = "io.xconn.tictac.account.create"
 
+	topicSetOnline  = "io.xconn.tictac.user.online.set"
+	topicSetOffline = "io.xconn.tictac.user.offline.set"
+
 	errOperationFailed = "io.xconn.tictac.operation_failed"
 )
 
@@ -25,6 +28,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	userManager := NewUserManager()
 
 	session, err := xconn.Connect(context.Background(), url, realm)
 	if err != nil {
@@ -60,6 +65,18 @@ func main() {
 	}
 
 	defer session.Unregister(reg.ID)
+
+	onSub, err := session.Subscribe(topicSetOnline, userManager.statusOnlineHandler(db), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer session.Unsubscribe(onSub)
+
+	offSub, err := session.Subscribe(topicSetOffline, userManager.statusOfflineHandler, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer session.Unsubscribe(offSub)
 
 	// Close if SIGINT (CTRL-c) received.
 	closeChan := make(chan os.Signal, 1)
