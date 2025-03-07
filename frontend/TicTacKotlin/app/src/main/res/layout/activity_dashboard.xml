@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".DashboardActivity"
+    android:background="@drawable/gradient_bg">
+
+    <TextView
+        android:id="@+id/titleTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/app_name"
+        android:textSize="36sp"
+        android:textStyle="bold"
+        android:textColor="@color/oColor"
+        android:layout_marginTop="42dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"/>
+
+    <LinearLayout
+        android:id="@+id/levelSelectionLayouts"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="3"
+        android:layout_below="@id/titleTextView"
+        android:layout_marginTop="50dp">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/easyLevelCard"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            app:cardCornerRadius="10dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginBottom="20dp"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1"
+            android:outlineSpotShadowColor="@color/oColor"
+            android:outlineAmbientShadowColor="@color/oColor"
+            app:cardElevation="10dp"
+            app:cardMaxElevation="8dp"
+            >
+
+            <LinearLayout
+                android:id="@+id/easyLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:background="@drawable/level_card_bg"
+                android:gravity="center">
+
+
+                <ImageView
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:src="@drawable/easy"
+                    android:layout_marginTop="10dp"
+                    android:layout_gravity="center"
+                    />
+
+                <TextView
+                    android:id="@+id/easyText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="3x3"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    android:textSize="32sp"
+                    android:layout_gravity="center"
+                    android:shadowColor="@color/white"
+                    android:layout_marginBottom="10dp"
+                    />
+
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/mediumLevelCard"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            app:cardCornerRadius="10dp"
+            android:elevation="10dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginBottom="20dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1"
+            android:outlineSpotShadowColor="@color/oColor"
+            android:outlineAmbientShadowColor="@color/oColor"
+            app:cardElevation="10dp"
+            app:cardMaxElevation="8dp">
+
+            <LinearLayout
+                android:id="@+id/mediumLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/level_card_bg"
+                >
+
+                <ImageView
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:src="@drawable/med"
+                    android:layout_marginTop="10dp"
+                    android:layout_gravity="center"
+                    />
+
+                <TextView
+                    android:id="@+id/mediumText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="5x5"
+                    android:textColor="@color/oColor"
+                    android:textStyle="bold"
+                    android:layout_gravity="center"
+                    android:textSize="32sp"
+                    />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/hardLevelCard"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            app:cardCornerRadius="10dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginBottom="20dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1"
+            android:outlineSpotShadowColor="@color/oColor"
+            android:outlineAmbientShadowColor="@color/oColor"
+            app:cardElevation="10dp"
+            app:cardMaxElevation="8dp">
+
+            <LinearLayout
+                android:id="@+id/hardLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:background="@drawable/level_card_bg"
+                >
+
+                <ImageView
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:src="@drawable/hard"
+                    android:layout_marginTop="10dp"
+                    android:layout_gravity="center"
+                    />
+
+                <TextView
+                    android:id="@+id/hardText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="7x7"
+                    android:layout_gravity="center"
+                    android:textColor="@color/winnerColor"
+                    android:textStyle="bold"
+                    android:textSize="32sp"
+                    />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/userSelectionLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@id/levelSelectionLayouts"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/p2rCard"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="10dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginEnd="10dp"
+            android:outlineSpotShadowColor="@color/oColor"
+            android:outlineAmbientShadowColor="@color/oColor"
+            app:cardElevation="10dp"
+            app:cardMaxElevation="8dp"
+            >
+
+            <LinearLayout
+                android:id="@+id/p2rLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="10dp"
+                android:background="@drawable/level_card_bg"
+                android:gravity="center">
+
+                <ImageView
+                    android:id="@+id/personImg"
+                    android:layout_width="70dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/user"
+                    android:layout_gravity="center"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="vs"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    android:textSize="24sp"
+                    android:shadowColor="@color/white"
+                    />
+
+                <ImageView
+                    android:id="@+id/robotImg"
+                    android:layout_width="70dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/robot_assistant"
+                    android:layout_gravity="center"
+                    />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/p2pCard"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="10dp"
+            android:elevation="10dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginBottom="0dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginStart="10dp"
+            android:outlineSpotShadowColor="@color/oColor"
+            android:outlineAmbientShadowColor="@color/oColor"
+            app:cardElevation="10dp"
+            app:cardMaxElevation="8dp">
+
+            <LinearLayout
+                android:id="@+id/p2pLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="10dp"
+                android:background="@drawable/level_card_bg"
+                >
+
+                <ImageView
+                    android:id="@+id/personImg1"
+                    android:layout_width="70dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/user"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="0dp"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="vs"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    android:textSize="24sp"
+                    android:shadowColor="@color/white"
+                    />
+
+                <ImageView
+                    android:id="@+id/personImg2"
+                    android:layout_width="70dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/user"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="0dp"
+                    />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            app:cardCornerRadius="10dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginStart="10dp"
+            android:outlineSpotShadowColor="@color/oColor"
+            android:outlineAmbientShadowColor="@color/oColor"
+            app:cardElevation="10dp"
+            android:visibility="gone"
+            app:cardMaxElevation="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/level_card_bg"
+                >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hard"
+                    android:textColor="@color/winnerColor"
+                    android:textStyle="bold"
+                    android:textSize="32sp"
+                    />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/onLineLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/userSelectionLayout"
+        >
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/p2pOnlineCard"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="10dp"
+            android:elevation="10dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="0dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginStart="10dp"
+            android:layout_centerHorizontal="true"
+            android:outlineSpotShadowColor="@color/oColor"
+            android:outlineAmbientShadowColor="@color/oColor"
+            app:cardElevation="10dp"
+            app:cardMaxElevation="8dp">
+
+            <LinearLayout
+                android:id="@+id/p2pOnlineLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="10dp"
+                android:background="@drawable/level_card_bg"
+                >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Play Online"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    android:textSize="24sp"
+                    android:shadowColor="@color/white"
+                    />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+    </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_marginTop="30dp"
+        android:padding="10dp"
+        android:layout_below="@id/onLineLayout"
+        >
+
+        <ImageView
+            android:id="@+id/backButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/back"
+            android:padding="10dp"
+            android:layout_alignParentStart="true"
+            />
+
+        <ImageView
+            android:id="@+id/playGame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/back"
+            android:scaleX="-1"
+            android:padding="10dp"
+            android:clickable="false"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="10dp" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="grey">#C8C7C7</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="green">#FF008000</color>
+
+    <color name="primaryColor">#003366</color>
+    <color name="primaryColor1">#03203C</color>
+    <color name="xColor">#3366cc</color>
+    <color name="oColor">#00ffff</color>
+    <color name="dark_green">#164949</color>
+    <color name="light_green">#267979</color>
+    <color name="primaryVariant">#3700B3</color>
+    <color name="secondaryColor">#03DAC5</color>
+    <color name="backgroundColor">#F5F5F5</color>
+    <color name="gridLineColor">#BDBDBD</color>
+    <color name="winnerColor">#FF5722</color>
+    <color name="drawColor">#FFC107</color>
+</resources>
