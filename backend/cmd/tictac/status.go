@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/xconnio/wampproto-go/util"
 	"github.com/xconnio/xconn-go"
 	"gorm.io/gorm"
+	"maps"
 	"sync"
 )
 
@@ -50,4 +52,9 @@ func (m *UserManager) statusOfflineHandler(event *xconn.Event) {
 	m.Lock()
 	delete(m.onlineUserByID, int(userID))
 	m.Unlock()
+}
+
+func (m *UserManager) onlineUser(_ context.Context, _ *xconn.Invocation) *xconn.Result {
+	users := maps.Values(m.onlineUserByID)
+	return &xconn.Result{Arguments: []any{users}}
 }

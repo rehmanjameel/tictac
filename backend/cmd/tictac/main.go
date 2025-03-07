@@ -15,7 +15,8 @@ const (
 	url   = "ws://localhost:8080/ws"
 	realm = "realm1"
 
-	procedureCreateAccount = "io.xconn.tictac.account.create"
+	procedureCreateAccount  = "io.xconn.tictac.account.create"
+	procedureGetOnlineUsers = "io.xconn.tictac.users.online"
 
 	topicSetOnline  = "io.xconn.tictac.user.online.set"
 	topicSetOffline = "io.xconn.tictac.user.offline.set"
@@ -77,6 +78,12 @@ func main() {
 		log.Fatal(err)
 	}
 	defer session.Unsubscribe(offSub)
+
+	onlineUsersReg, err := session.Register(procedureGetOnlineUsers, userManager.onlineUser, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer session.Unregister(onlineUsersReg.ID)
 
 	// Close if SIGINT (CTRL-c) received.
 	closeChan := make(chan os.Signal, 1)
