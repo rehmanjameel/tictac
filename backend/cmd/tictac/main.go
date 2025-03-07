@@ -16,6 +16,7 @@ const (
 	realm = "realm1"
 
 	procedureCreateAccount  = "io.xconn.tictac.account.create"
+	procedureGetUsers       = "io.xconn.tictac.users.get"
 	procedureGetOnlineUsers = "io.xconn.tictac.users.online"
 
 	topicSetOnline  = "io.xconn.tictac.user.online.set"
@@ -66,6 +67,20 @@ func main() {
 	}
 	log.Printf("Registered procedure %s", procedureCreateAccount)
 	defer session.Unregister(reg.ID)
+
+	getReg, err := session.Register(procedureGetUsers, func(ctx context.Context, invocation *xconn.Invocation) *xconn.Result {
+		users, err := GetUsers(db)
+		if err != nil {
+			return &xconn.Result{Err: errOperationFailed, Arguments: []any{err.Error()}}
+		}
+
+		return &xconn.Result{Arguments: []any{users}}
+	}, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("Registered procedure %s", procedureGetUsers)
+	defer session.Unregister(getReg.ID)
 
 	onSub, err := session.Subscribe(topicSetOnline, userManager.statusOnlineHandler(db), nil)
 	if err != nil {
