@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"maps"
+	"slices"
 	"sync"
 
 	"github.com/xconnio/wampproto-go/util"
@@ -55,10 +57,6 @@ func (m *UserManager) statusOfflineHandler(event *xconn.Event) {
 }
 
 func (m *UserManager) onlineUser(_ context.Context, _ *xconn.Invocation) *xconn.Result {
-	users := []*User{}
-	for _, user := range m.onlineUserByID {
-		users = append(users, user)
-	}
-
+	users := slices.Collect(maps.Values(m.onlineUserByID))
 	return &xconn.Result{Arguments: []any{users}}
 }
