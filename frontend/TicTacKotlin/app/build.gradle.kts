@@ -68,5 +68,6 @@ dependencies {
     // Add the dependency for the Analytics library
     // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation("com.google.firebase:firebase-analytics")
+    implementation("de.hdodenhof:circleimageview:3.1.0")
 
 }

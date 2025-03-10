@@ -25,7 +25,7 @@ class SplashSCreenActivity : AppCompatActivity() {
     private fun startMainActivity() {
         val intent = Intent(
             this,
-            DashboardActivity::class.java
+            SelectGameTypeActivity::class.java
         )
         startActivity(intent)
         finish()

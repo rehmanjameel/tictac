@@ -1,5 +1,6 @@
 package io.xconn.tictackotlin
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
@@ -66,23 +67,48 @@ class RegisterActivity : AppCompatActivity() {
                         ).await()
 
                         println(result)
-                        Log.e("json result", "${result.args}")
-                        runOnUiThread {
-                            // Stuff that updates the UI
-                            binding.userDetails.text = "${result.args}"
+                        val args = result.args // This is expected to be a List
 
-                            if (result.args!!.isNotEmpty()) {
-                                binding.emailTIET.setText("")
-                                binding.userNameTIET.setText("").toString()
-                                app.saveLoginOrBoolean("is_logged_in", true)
-                                Toast.makeText(this@RegisterActivity, "User registered successfully!", Toast.LENGTH_SHORT).show()
+                        if (args != null) {
+                            if (args.isNotEmpty() && args[0] is Map<*, *>) {
+                                val userData = args[0] as Map<*, *>
+
+                                val createdAt = userData["created_at"] as? String ?: "N/A"
+                                val userEmail = userData["email"] as? String ?: "N/A"
+                                val id = userData["id"] as? Int ?: -1
+                                val name = userData["name"] as? String ?: "N/A"
+                                runOnUiThread {
+                                    // Stuff that updates the UI
+                                    binding.userDetails.text = "${result.details}"
+
+                                    if (result.args!!.isNotEmpty()) {
+                                        binding.emailTIET.setText("")
+                                        binding.userNameTIET.setText("").toString()
+                                        app.saveLoginOrBoolean("is_logged_in", true)
+                                        app.saveInt("user_id", id)
+                                        app.saveString("user_name", name)
+                                        app.saveString("email", userEmail)
+
+                                        startActivity(Intent(this@RegisterActivity, DashboardActivity::class.java).apply {
+                                            putExtra("is_online", true)
+                                        })
+                                        finish()
+                                        Toast.makeText(this@RegisterActivity, "User registered successfully!", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(this@RegisterActivity, "User not registered successfully!", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                                Log.e("Extracted Data", "Created At: $createdAt, Email: $email, ID: $id, Name: $name")
                             } else {
-                                Toast.makeText(this@RegisterActivity, "User not registered successfully!", Toast.LENGTH_SHORT).show()
+                                Log.e("Error", "Unexpected data format in result.args")
                             }
                         }
+                        Log.e("json result", "${result.args}")
+                        Log.e("json result", "${result.details}")
+
                     } catch (e: Exception) {
                         runOnUiThread {
-                            Toast.makeText(this@RegisterActivity, "$e", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@RegisterActivity, "Server Connection Problem..", Toast.LENGTH_SHORT).show()
 
                         }
                     }

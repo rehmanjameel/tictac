@@ -5,13 +5,19 @@ import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import android.widget.Toast
 import io.xconn.xconn.Client
 import io.xconn.xconn.Session
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
-class App: Application() {
+@OptIn(DelicateCoroutinesApi::class)
+class App : Application() {
     init {
         context = this
     }
@@ -20,7 +26,7 @@ class App: Application() {
     companion object {
         private var context: Context? = null
         lateinit var session: Session
-
+        var isSessionInitialized = false
         private lateinit var sharedPref: SharedPreferences
 
         fun applicationContext(): Context {
@@ -31,16 +37,27 @@ class App: Application() {
         val KEY_LOGGED_IN = "login_key"
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate() {
         super.onCreate()
         val myContext: Context = applicationContext()
         Log.e("Check ", "yes")
 
         sharedPref = myContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        GlobalScope.launch {
-            session = connect()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                session = connect()
+                isSessionInitialized = true
+                Log.e("Check", "Connected successfully")
+            } catch (e: Exception) {
+                Log.e("Connection Error", "Error: ${e.message}")
+                isSessionInitialized = false
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@App, "Server Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
+
     }
 
     private suspend fun connect(): Session {
@@ -52,7 +69,10 @@ class App: Application() {
     override fun onTerminate() {
         super.onTerminate()
 
+        GlobalScope.launch {
 
+            session.close()
+        }
     }
 
     fun saveString(KEY_NAME: String, text: String) {
