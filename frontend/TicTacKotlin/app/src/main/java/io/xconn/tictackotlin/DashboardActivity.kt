@@ -28,6 +28,7 @@ class DashboardActivity : AppCompatActivity() {
     private var personText = ""
     private var user_id : Int = 0
 
+    private var isOnline = false;
     private lateinit var reg : Registration
     private val app = App()
     private lateinit var adapter: OnlineUsersAdapter
@@ -40,7 +41,7 @@ class DashboardActivity : AppCompatActivity() {
         setContentView(binding.root)
 
 
-        val isOnline = intent.getBooleanExtra("is_online", false)
+        isOnline = intent.getBooleanExtra("is_online", false)
         Log.e("is_playing", isOnline.toString())
         if (isOnline) {
             binding.userSelectionLayout.visibility = View.GONE
@@ -101,6 +102,10 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         binding.backButton.setOnClickListener { view ->
+            lifecycleScope.launch {
+                unPairRegisteredUser()
+            }
+            app.saveLoginOrBoolean("is_procedure_registered", false)
             finish()
         }
 
@@ -146,28 +151,33 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     private suspend fun pairUser() {
-        reg = session.register("io.xconn.tictac.$user_id.pair", {invocation ->
+        if(isSessionInitialized) {
+            reg = session.register("io.xconn.tictac.$user_id.pair", { invocation ->
 
-            Log.e("result args", invocation.args.toString())
-            startActivity(Intent(this@DashboardActivity, MainActivity::class.java).apply {
-                putExtra("user_id", "user.id")
-            })
-            Result(args = invocation.args, kwargs = invocation.kwargs)
-        }).await()
-        runOnUiThread {
-            app.saveLoginOrBoolean("is_procedure_registered", true)
+                val extractedValue: Int? = (invocation as? List<*>)?.firstOrNull() as? Int
+                Log.e("result args", invocation.args.toString() + ";; $extractedValue..,.,  ${invocation.args?.get(0)}" )
 
-            Log.e("user pair..", reg.toString())
+
+                startActivity(Intent(this@DashboardActivity, MainActivity::class.java).apply {
+                    putExtra("user_id", invocation.args?.get(0).toString())
+                })
+                Result(args = invocation.args, kwargs = invocation.kwargs)
+            }).await()
+            runOnUiThread {
+                app.saveLoginOrBoolean("is_procedure_registered", true)
+
+                Log.e("user pair..", reg.toString())
+            }
         }
 
     }
 
     private suspend fun unPairRegisteredUser() {
         if (::reg.isInitialized) {
-            val result = reg?.let { session.unregister(it) }
+            val result = reg.let { session.unregister(it) }
             app.saveLoginOrBoolean("is_procedure_registered", false)
             runOnUiThread {
-                Log.e("user pair..", result.toString())
+                Log.e("user unpair..", result.toString())
             }
         }
 
@@ -246,8 +256,10 @@ class DashboardActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         lifecycleScope.launch {
-            setUserOffline()
-//            unPairRegisteredUser()
+//            setUserOffline()
+            unPairRegisteredUser()
+            app.saveLoginOrBoolean("is_procedure_registered", false)
+
 
         }
     }
@@ -255,7 +267,7 @@ class DashboardActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         lifecycleScope.launch {
-            setUserOffline()
+//            setUserOffline()
 //            unPairRegisteredUser()
 
         }

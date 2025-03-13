@@ -57,7 +57,7 @@ class OnlineUsersAdapter(val context: Context, private val usersList: ArrayList<
         val result = App.session.call("io.xconn.tictac.${user.id}.pair",
             args = listOf(app.getValueInt("user_id")))
         context.startActivity(Intent(context, MainActivity::class.java).apply {
-            putExtra("user_id", user.id)
+            putExtra("user_id", user.id.toString())
         })
         Log.e("pair result", result.toString())
     }

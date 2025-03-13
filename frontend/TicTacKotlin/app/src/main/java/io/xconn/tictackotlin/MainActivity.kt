@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.view.animation.AnimationUtils
@@ -12,8 +13,13 @@ import android.widget.GridLayout
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.xconn.tictackotlin.App.Companion.session
 import io.xconn.tictackotlin.databinding.ActivityMainBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.Random
 import kotlin.math.max
 import kotlin.math.min
@@ -27,7 +33,11 @@ class MainActivity : AppCompatActivity() {
     private var mediaPlayer: MediaPlayer? = null
     private var loseMediaPlayer: MediaPlayer? = null
     private var gridSize = 3 // Change to 5 or 7 for larger boards
+    private var isOnlineGame = true;
 
+    private val app = App()
+    val userId = app.getValueInt("user_id")
+    var secondPlayerId: Int = 0
     private var wonCount = 0
 
     // Player representation
@@ -46,6 +56,14 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         gridLayout = binding.gridLayouts
+
+        // get second player id
+        // Get the user_id as a String first
+        val userIdString = intent.getStringExtra("user_id")
+
+        // Convert it to Int safely
+        secondPlayerId = userIdString?.toIntOrNull() ?: 0
+        Log.e("user_id of player", secondPlayerId.toString())
 
         val gameLevelType = intent.getStringExtra("level_type")
         val personType = intent.getStringExtra("person_type")
@@ -140,6 +158,31 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private suspend fun subscribeUser() {
+        session.subscribe("io.xconn.tictac.$userId", {event ->
+            Log.e("user subscribed;", event.args.toString() + userId)
+
+            if (event.args!!.size >= 2) {
+                val row = event.args!![0] as? Int ?: return@subscribe
+                val col = event.args!![1] as? Int ?: return@subscribe
+                Log.e("Move Received:", "Row: $row, Col: $col")
+
+                // Run on UI Thread to update UI
+                runOnUiThread {
+                    val img = getImageViewByTag(row, col)
+                    playerTap(row, col, img) // Simulate opponent's move
+                }
+            }
+        })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        lifecycleScope.launch {
+            subscribeUser()
+        }
+    }
+
     private fun initializeBoard(size: Int) {
         gridSize = size
         gameActive = true
@@ -232,6 +275,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private suspend fun publishMove(row: Int, col: Int) {
+        val moveResult = session.publish(
+            "io.xconn.tictac.$secondPlayerId",
+            args = listOf(row, col) // Sending row and column
+        )
+        Log.e("Move Sent:", "Row: $row, Col: $col, reulst: $moveResult, id: $secondPlayerId")
+    }
 
     private fun generateWinPositions(gridSize: Int): List<IntArray> {
         val winPositions: MutableList<IntArray> = ArrayList()
@@ -305,6 +355,13 @@ class MainActivity : AppCompatActivity() {
             img.imageTintList = ContextCompat.getColorStateList(this, R.color.oColor)
             binding.statusTextView.text = "X's Turn"
             activePlayer = 0
+        }
+
+        // Send Move to the Other Player
+        if (isOnlineGame) {
+            CoroutineScope(Dispatchers.IO).launch {
+                publishMove(row, col) // Sending row and col to opponent
+            }
         }
 
         // Animation

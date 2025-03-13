@@ -71,7 +71,7 @@ class App : Application() {
 
         GlobalScope.launch {
 
-            session.close()
+//            session.close()
         }
     }
 
