@@ -4,7 +4,6 @@ import android.animation.Animator
 import android.graphics.Color
 import android.media.MediaPlayer
 import android.os.Bundle
-import android.os.Handler
 import android.util.Log
 import android.util.TypedValue
 import android.view.View
@@ -24,7 +23,6 @@ import java.util.Random
 import kotlin.math.max
 import kotlin.math.min
 
-
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
@@ -39,7 +37,6 @@ class MainActivity : AppCompatActivity() {
     private val app = App()
     val userId = app.getValueInt("user_id")
     var secondPlayerId: Int = 0
-    private var wonCount = 0
 
     // Player representation
     // 0 - X
@@ -59,12 +56,10 @@ class MainActivity : AppCompatActivity() {
         gridLayout = binding.gridLayouts
 
         // get second player id
-        // Get the user_id as a String first
         val userIdString = intent.getStringExtra("user_id")
 
         // Convert it to Int safely
         secondPlayerId = userIdString?.toIntOrNull() ?: 0
-        Log.e("user_id of player", secondPlayerId.toString())
 
         val gameLevelType = intent.getStringExtra("level_type")
         val personType = intent.getStringExtra("person_type")
@@ -130,39 +125,24 @@ class MainActivity : AppCompatActivity() {
         // Set initial status
         binding.statusTextView.text = "X's Turn"
 
-
         // Set restart button listener
         binding.restartButton.setOnClickListener { v -> initializeBoard(gridSize) }
 
-
         // Set gridlayout to restart the game
         binding.gridLayout.setOnClickListener { view -> initializeBoard(gridSize) }
-
 
         // Load sound
         mediaPlayer = MediaPlayer.create(this, R.raw.hurrah) // Place sound in res/raw
 
         loseMediaPlayer = MediaPlayer.create(this, R.raw.losing)
 
-
-        // Obtain the FirebaseAnalytics instance.
-//        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this)
-//        val bundle = Bundle()
-//        bundle.putString(FirebaseAnalytics.Param.ITEM_ID, "id")
-//        bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, "name")
-//        bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "image")
-//        mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle)
-
         binding.backButton.setOnClickListener { view ->
             onBackPressed()
         }
-
     }
 
     private suspend fun subscribeUser() {
         session.subscribe("io.xconn.tictac.$userId", { event ->
-            Log.e("user subscribed;", event.args.toString() + userId)
-            Log.e("user subscribed00;", event.args?.size.toString() + userId)
 
             // Extracting values from the list
             val row = event.args?.getOrNull(0) as? Int
@@ -170,7 +150,6 @@ class MainActivity : AppCompatActivity() {
             val isWin = event.args?.getOrNull(2) as? Boolean
 
             if (row != null && col != null && isWin != null) {
-                Log.e("Move Received:", "Row: $row, Col: $col, isWin: $isWin")
 
                 runOnUiThread {
                     val img = getImageViewByTag(row, col)
@@ -204,7 +183,6 @@ class MainActivity : AppCompatActivity() {
             }
         })
     }
-
 
     override fun onResume() {
         super.onResume()
@@ -299,7 +277,6 @@ class MainActivity : AppCompatActivity() {
                         cell
                     )
                 }
-
                 gridLayout!!.addView(cell)
             }
         }
@@ -307,14 +284,11 @@ class MainActivity : AppCompatActivity() {
 
     private suspend fun publishMove(row: Int, col: Int, isWin: Boolean) {
         val data = listOf(row, col, isWin) // Send values directly
-
         session.publish("io.xconn.tictac.$secondPlayerId", data)
     }
 
-
     private fun generateWinPositions(gridSize: Int): List<IntArray> {
         val winPositions: MutableList<IntArray> = ArrayList()
-
         val winCondition = if ((gridSize == 5)) 4 else if ((gridSize == 7)) 5
         else if ((gridSize == 9)) 6 else gridSize // 4 for 5x5, 5 for 7x7, full for 3x3
 
@@ -361,7 +335,6 @@ class MainActivity : AppCompatActivity() {
                 winPositions.add(secondaryDiagonal)
             }
         }
-
         return winPositions
     }
 
@@ -419,14 +392,12 @@ class MainActivity : AppCompatActivity() {
         binding.statusTextView.text = "Waiting for Opponent..."
     }
 
-
     private fun isBoardFull(): Boolean {
         for (row in gameState) {
             if (row.contains(2)) return false  // If any cell is empty, the game is not a draw
         }
         return true
     }
-
 
     private fun isWinningMove(): Boolean {
         val winPositions = generateWinPositions(gridSize)
@@ -455,7 +426,6 @@ class MainActivity : AppCompatActivity() {
         return false
     }
 
-
     private fun aiMove() {
         val emptyCells: MutableList<IntArray> = ArrayList()
 
@@ -483,11 +453,9 @@ class MainActivity : AppCompatActivity() {
 
         if (!isMovesLeft(board)) return 0 // Draw
 
-
         // **Limit depth for larger boards to avoid lag**
         val maxDepth = if ((gridSize == 3)) 9 else if ((gridSize == 5)) 4 else 3
         if (depth >= maxDepth) return 0 // Stop recursion
-
 
         if (isMax) {  // Maximizing (AI's turn)
             var best = -1000
@@ -518,7 +486,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     private fun findBestMove(board: Array<IntArray>): IntArray {
         var bestVal = -1000
         var bestRow = -1
@@ -544,12 +511,10 @@ class MainActivity : AppCompatActivity() {
         return intArrayOf(bestRow, bestCol)
     }
 
-
     private fun getImageViewByTag(row: Int, col: Int): ImageView {
         val index = row * gridSize + col // Convert (row, col) to 1D index
         return gridLayout!!.getChildAt(index) as ImageView
     }
-
 
     private fun evaluateBoard(board: Array<IntArray>): Int {
         val winCondition =
@@ -611,16 +576,13 @@ class MainActivity : AppCompatActivity() {
                 if (oWin) return -10
             }
         }
-
         return 0 // No winner yet
     }
-
 
     private fun isMovesLeft(board: Array<IntArray>): Boolean {
         for (i in 0 until gridSize) for (j in 0 until gridSize) if (board[i][j] == 2) return true
         return false
     }
-
 
     private fun highlightWinningCells(winPosition: IntArray) {
         for (pos in winPosition) {
@@ -695,5 +657,4 @@ class MainActivity : AppCompatActivity() {
             loseMediaPlayer = null
         }
     }
-
 }

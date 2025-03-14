@@ -14,7 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
 
 @OptIn(DelicateCoroutinesApi::class)
 class App : Application() {
@@ -34,14 +33,12 @@ class App : Application() {
         }
 
         val PREFS_NAME = "sharedPrefs"
-        val KEY_LOGGED_IN = "login_key"
     }
 
     override fun onCreate() {
         super.onCreate()
-        val myContext: Context = applicationContext()
-        Log.e("Check ", "yes")
 
+        val myContext: Context = applicationContext()
         sharedPref = myContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -53,32 +50,26 @@ class App : Application() {
                 Log.e("Connection Error", "Error: ${e.message}")
                 isSessionInitialized = false
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@App, "Server Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@App, "Server Error: ${e.message}", Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
         }
-
     }
 
     private suspend fun connect(): Session {
         val client = Client()
-
         return client.connect("ws://192.168.0.224:8080/ws", "realm1")
     }
 
     override fun onTerminate() {
         super.onTerminate()
-
         GlobalScope.launch {
-
 //            session.close()
         }
     }
 
     fun saveString(KEY_NAME: String, text: String) {
-
-        Log.e("Check ", "Here")
-
         val editor: SharedPreferences.Editor = sharedPref.edit()
 
         editor.putString(KEY_NAME, text)

@@ -16,14 +16,12 @@ import kotlinx.coroutines.withContext
 
 class RegisterActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRegisterBinding
-
     private val app = App()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
 
         binding.registerUser.setOnClickListener {
             lifecycleScope.launch {
@@ -53,26 +51,16 @@ class RegisterActivity : AppCompatActivity() {
     private suspend fun registerUser(email: String, userName: String) {
         lifecycleScope.launch {
             try {
-
                 withContext(Dispatchers.IO) {
-                    println("-----------------------------------------------------------")
-
-
                     try {
-
-                        println("----------------------after connect")
                         val result = session.call(
                             "io.xconn.tictac.account.create",
                             args = listOf(userName, email)
                         ).await()
-
-                        println(result)
                         val args = result.args // This is expected to be a List
-
                         if (args != null) {
                             if (args.isNotEmpty() && args[0] is Map<*, *>) {
                                 val userData = args[0] as Map<*, *>
-
                                 val createdAt = userData["created_at"] as? String ?: "N/A"
                                 val userEmail = userData["email"] as? String ?: "N/A"
                                 val id = userData["id"] as? Int ?: -1
@@ -80,7 +68,6 @@ class RegisterActivity : AppCompatActivity() {
                                 runOnUiThread {
                                     // Stuff that updates the UI
                                     binding.userDetails.text = "${result.details}"
-
                                     if (result.args!!.isNotEmpty()) {
                                         binding.emailTIET.setText("")
                                         binding.userNameTIET.setText("").toString()
@@ -89,43 +76,48 @@ class RegisterActivity : AppCompatActivity() {
                                         app.saveString("user_name", name)
                                         app.saveString("email", userEmail)
 
-                                        startActivity(Intent(this@RegisterActivity, DashboardActivity::class.java).apply {
-                                            putExtra("is_online", true)
-                                        })
+                                        startActivity(
+                                            Intent(
+                                                this@RegisterActivity,
+                                                DashboardActivity::class.java
+                                            ).apply {
+                                                putExtra("is_online", true)
+                                            })
                                         finish()
-                                        Toast.makeText(this@RegisterActivity, "User registered successfully!", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            this@RegisterActivity,
+                                            "User registered successfully!",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     } else {
-                                        Toast.makeText(this@RegisterActivity, "User not registered successfully!", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            this@RegisterActivity,
+                                            "User not registered successfully!",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                                 }
-                                Log.e("Extracted Data", "Created At: $createdAt, Email: $email, ID: $id, Name: $name")
                             } else {
                                 Log.e("Error", "Unexpected data format in result.args")
                             }
                         }
-                        Log.e("json result", "${result.args}")
-                        Log.e("json result", "${result.details}")
-
                     } catch (e: Exception) {
                         runOnUiThread {
-                            Toast.makeText(this@RegisterActivity, "Server Connection Problem..", Toast.LENGTH_SHORT).show()
-
+                            Toast.makeText(
+                                this@RegisterActivity,
+                                "Server Connection Problem..",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
-
-
-
                 }
             } catch (e: Exception) {
                 Log.e("Coroutine", "Connection failed", e)
-
             }
-
         }
     }
 
-
-    fun isValidEmail(target: CharSequence?): Boolean {
+    private fun isValidEmail(target: CharSequence?): Boolean {
         return if (TextUtils.isEmpty(target)) {
             false
         } else {

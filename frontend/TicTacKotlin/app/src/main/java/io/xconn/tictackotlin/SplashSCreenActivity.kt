@@ -10,8 +10,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 class SplashSCreenActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
         // Check if device is Android 12+ (API 31+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             installSplashScreen()

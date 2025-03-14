@@ -2,11 +2,7 @@ package io.xconn.tictackotlin
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import io.xconn.tictackotlin.databinding.ActivityRegisterBinding
 import io.xconn.tictackotlin.databinding.ActivitySelectGameTypeBinding
 
 class SelectGameTypeActivity : AppCompatActivity() {
@@ -26,7 +22,6 @@ class SelectGameTypeActivity : AppCompatActivity() {
                 startActivity(Intent(this, DashboardActivity::class.java).apply {
                     putExtra("is_online", true)
                 })
-
             }
         }
 

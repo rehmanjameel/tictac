@@ -9,61 +9,58 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.transition.Visibility
 import io.xconn.tictackotlin.App.Companion.isSessionInitialized
 import io.xconn.tictackotlin.App.Companion.session
 import io.xconn.tictackotlin.adapter.OnlineUsersAdapter
 import io.xconn.tictackotlin.databinding.ActivityDashboardBinding
 import io.xconn.tictackotlin.model.OnlineUsersModel
-import io.xconn.wampproto.messages.Register
 import io.xconn.xconn.Registration
 import io.xconn.xconn.Result
-import io.xconn.xconn.Session
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 class DashboardActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDashboardBinding
     private var levelText = ""
     private var personText = ""
-    private var user_id : Int = 0
-
+    private var user_id: Int = 0
     private var isOnline = false;
-    private lateinit var reg : Registration
+    private lateinit var reg: Registration
     private val app = App()
     private lateinit var adapter: OnlineUsersAdapter
     private val onlineUsersList = ArrayList<OnlineUsersModel>()
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
         isOnline = intent.getBooleanExtra("is_online", false)
-        Log.e("is_playing", isOnline.toString())
         if (isOnline) {
             binding.userSelectionLayout.visibility = View.GONE
             user_id = app.getValueInt("user_id")
-            Log.e("user iddd0", user_id.toString())
 
             lifecycleScope.launch {
-
                 getOnlineUsers()
-
                 if (!app.getValueBoolean("is_procedure_registered")) {
-                    Log.e("error of same", "proceduree here..")
                     pairUser()
                 }
             }
         }
 
-
         binding.easyText.setShadowLayer(10F, 5F, 5f, ContextCompat.getColor(this, R.color.white))
         binding.mediumText.setShadowLayer(10F, 5F, 5F, ContextCompat.getColor(this, R.color.oColor))
-        binding.hardText.setShadowLayer(10F, 5F, 5F, ContextCompat.getColor(this, R.color.winnerColor))
-        binding.titleTextView.setShadowLayer(10F, 5F, 5F, ContextCompat.getColor(this, R.color.oColor))
+        binding.hardText.setShadowLayer(
+            10F,
+            5F,
+            5F,
+            ContextCompat.getColor(this, R.color.winnerColor)
+        )
+        binding.titleTextView.setShadowLayer(
+            10F,
+            5F,
+            5F,
+            ContextCompat.getColor(this, R.color.oColor)
+        )
 
         binding.easyLevelCard.setOnClickListener { view ->
             handleCardClick(binding.easyLayout)
@@ -110,7 +107,8 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         adapter = OnlineUsersAdapter(this@DashboardActivity, onlineUsersList)
-        binding.usersListRV.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        binding.usersListRV.layoutManager =
+            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         binding.usersListRV.adapter = adapter
         lifecycleScope.launch {
             val users = getOnlineUsers() // Fetch online users
@@ -146,17 +144,12 @@ class DashboardActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e("getOnlineUsers", "Error fetching users: ${e.message}")
         }
-
         return usersList
     }
 
     private suspend fun pairUser() {
-        if(isSessionInitialized) {
+        if (isSessionInitialized) {
             reg = session.register("io.xconn.tictac.$user_id.pair", { invocation ->
-
-                val extractedValue: Int? = (invocation as? List<*>)?.firstOrNull() as? Int
-                Log.e("result args", invocation.args.toString() + ";; $extractedValue..,.,  ${invocation.args?.get(0)}" )
-
 
                 startActivity(Intent(this@DashboardActivity, MainActivity::class.java).apply {
                     putExtra("user_id", invocation.args?.get(0).toString())
@@ -165,8 +158,6 @@ class DashboardActivity : AppCompatActivity() {
             }).await()
             runOnUiThread {
                 app.saveLoginOrBoolean("is_procedure_registered", true)
-
-                Log.e("user pair..", reg.toString())
             }
         }
 
@@ -180,14 +171,12 @@ class DashboardActivity : AppCompatActivity() {
                 Log.e("user unpair..", result.toString())
             }
         }
-
     }
 
     private suspend fun setUserOnline() {
         if (isSessionInitialized) {
-            Log.e("user iddd", user_id.toString())
             val result = session.publish("io.xconn.tictac.user.online.set", args = listOf(user_id))
-            runOnUiThread{
+            runOnUiThread {
                 Log.e("results online", result.toString())
             }
         }
@@ -198,12 +187,10 @@ class DashboardActivity : AppCompatActivity() {
             Log.e("user iddd off", user_id.toString())
             val result = session.publish("io.xconn.tictac.user.offline.set", args = listOf(user_id))
 
-            runOnUiThread{
+            runOnUiThread {
                 try {
                     Log.e("results ofline", result.toString())
-
                 } catch (e: Exception) {
-
                     Log.e("results ofline ee", result.toString() + e.message)
                 }
             }
@@ -213,25 +200,20 @@ class DashboardActivity : AppCompatActivity() {
     private fun handleCardClick(selectedCard: LinearLayout) {
         // Reset all cards and texts
         resetCards()
-
         // Highlight the selected card and show the corresponding text
         selectedCard.setBackgroundResource(R.drawable.level_selction_bg) // Change to your desired color
-//        selectedText.setVisibility(View.VISIBLE);
     }
 
     private fun handlePersonClick(selectedCard: LinearLayout) {
         // Reset all cards and texts
         resetPersonCards()
-
         // Highlight the selected card and show the corresponding text
         selectedCard.setBackgroundResource(R.drawable.level_selction_bg) // Change to your desired color
-//        selectedText.setVisibility(View.VISIBLE);
     }
 
     private fun resetCards() {
         // Reset all cards to white
         binding.easyLayout.setBackgroundResource(R.drawable.level_card_bg)
-
         binding.mediumLayout.setBackgroundResource(R.drawable.level_card_bg)
         binding.hardLayout.setBackgroundResource(R.drawable.level_card_bg)
     }
@@ -239,44 +221,28 @@ class DashboardActivity : AppCompatActivity() {
     private fun resetPersonCards() {
         // Reset all cards to white
         binding.p2rLayout.setBackgroundResource(R.drawable.level_card_bg)
-
         binding.p2pLayout.setBackgroundResource(R.drawable.level_card_bg)
     }
 
     override fun onResume() {
         super.onResume()
-
-
         lifecycleScope.launch {
             setUserOnline()
-
         }
     }
 
     override fun onPause() {
         super.onPause()
         lifecycleScope.launch {
-//            setUserOffline()
             unPairRegisteredUser()
             app.saveLoginOrBoolean("is_procedure_registered", false)
-
-
         }
     }
 
-    override fun onStop() {
-        super.onStop()
-        lifecycleScope.launch {
-//            setUserOffline()
-//            unPairRegisteredUser()
-
-        }
-    }
     override fun onDestroy() {
         super.onDestroy()
         lifecycleScope.launch {
             setUserOffline()
-//            unPairRegisteredUser()
         }
     }
 }
