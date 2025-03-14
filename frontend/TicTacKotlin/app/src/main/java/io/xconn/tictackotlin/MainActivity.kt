@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     private var loseMediaPlayer: MediaPlayer? = null
     private var gridSize = 3 // Change to 5 or 7 for larger boards
     private var isOnlineGame = true;
+    private var isMyTurn = true  // Track whose turn it is
 
     private val app = App()
     val userId = app.getValueInt("user_id")
@@ -159,22 +160,51 @@ class MainActivity : AppCompatActivity() {
     }
 
     private suspend fun subscribeUser() {
-        session.subscribe("io.xconn.tictac.$userId", {event ->
+        session.subscribe("io.xconn.tictac.$userId", { event ->
             Log.e("user subscribed;", event.args.toString() + userId)
+            Log.e("user subscribed00;", event.args?.size.toString() + userId)
 
-            if (event.args!!.size >= 2) {
-                val row = event.args!![0] as? Int ?: return@subscribe
-                val col = event.args!![1] as? Int ?: return@subscribe
-                Log.e("Move Received:", "Row: $row, Col: $col")
+            // Extracting values from the list
+            val row = event.args?.getOrNull(0) as? Int
+            val col = event.args?.getOrNull(1) as? Int
+            val isWin = event.args?.getOrNull(2) as? Boolean
 
-                // Run on UI Thread to update UI
+            if (row != null && col != null && isWin != null) {
+                Log.e("Move Received:", "Row: $row, Col: $col, isWin: $isWin")
+
                 runOnUiThread {
                     val img = getImageViewByTag(row, col)
-                    playerTap(row, col, img) // Simulate opponent's move
+                    if (gameState[row][col] == 2) {
+                        gameState[row][col] = activePlayer
+                        img.setImageResource(if (activePlayer == 0) R.drawable.x else R.drawable.o)
+                        img.imageTintList = ContextCompat.getColorStateList(
+                            this, if (activePlayer == 0) R.color.xColor else R.color.oColor
+                        )
+                        img.translationY = -1000f
+                        img.animate().translationYBy(1000f).setDuration(300).start()
+
+                        activePlayer = 1 - activePlayer  // Switch turn
+                        isMyTurn = true  // Allow the player to play now
+
+                        binding.statusTextView.text = "Your Turn!"
+                    }
+
+                    if (isWin) {
+                        if (isBoardFull()) {
+                            binding.statusTextView.text = "It's a Draw!"
+                            showWinLosePopUp("OOO!!!", "It's a Draw!")
+                            loseMediaPlayer?.start()
+                        } else {
+                            isWinningMove()  // Handle win
+                        }
+                    }
                 }
+            } else {
+                Log.e("Move Error", "Invalid move received")
             }
         })
     }
+
 
     override fun onResume() {
         super.onResume()
@@ -275,13 +305,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun publishMove(row: Int, col: Int) {
-        val moveResult = session.publish(
-            "io.xconn.tictac.$secondPlayerId",
-            args = listOf(row, col) // Sending row and column
-        )
-        Log.e("Move Sent:", "Row: $row, Col: $col, reulst: $moveResult, id: $secondPlayerId")
+    private suspend fun publishMove(row: Int, col: Int, isWin: Boolean) {
+        val data = listOf(row, col, isWin) // Send values directly
+
+        session.publish("io.xconn.tictac.$secondPlayerId", data)
     }
+
 
     private fun generateWinPositions(gridSize: Int): List<IntArray> {
         val winPositions: MutableList<IntArray> = ArrayList()
@@ -338,62 +367,68 @@ class MainActivity : AppCompatActivity() {
 
     // method to apply the players X or O in board
     private fun playerTap(row: Int, col: Int, img: ImageView) {
-        if (!gameActive || gameState[row][col] != 2) return
+        if (!gameActive || gameState[row][col] != 2 || !isMyTurn) return  // Block if game over
 
         // Update state
         gameState[row][col] = activePlayer
         counter++
 
-        // Set Image and Toggle Player
         if (activePlayer == 0) {
             img.setImageResource(R.drawable.x)
             img.imageTintList = ContextCompat.getColorStateList(this, R.color.xColor)
-            binding.statusTextView.text = "O's Turn"
-            activePlayer = 1
         } else {
             img.setImageResource(R.drawable.o)
             img.imageTintList = ContextCompat.getColorStateList(this, R.color.oColor)
-            binding.statusTextView.text = "X's Turn"
-            activePlayer = 0
         }
 
-        // Send Move to the Other Player
-        if (isOnlineGame) {
-            CoroutineScope(Dispatchers.IO).launch {
-                publishMove(row, col) // Sending row and col to opponent
-            }
-        }
-
-        // Animation
         img.translationY = -1000f
         img.animate().translationYBy(1000f).setDuration(300).start()
 
-        // Check for win or draw
-        if (counter >= gridSize) checkWin()
-        if (counter == gridSize * gridSize && gameActive) {
+        // **Check if this move is a winning move**
+        val isWin = isWinningMove()
+
+        // **Check for a Draw AFTER checking for a win**
+        if (!isWin && isBoardFull()) {
             binding.statusTextView.text = "It's a Draw!"
-            showWinLosePopUp("OOO!!!", "It's Draw!")
-            if (loseMediaPlayer != null) {
-                loseMediaPlayer!!.start()
+            showWinLosePopUp("OOO!!!", "It's a Draw!")
+            loseMediaPlayer?.start()
+            gameActive = false
+
+            // **Send Draw Info to Other Player**
+            if (isOnlineGame) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    publishMove(row, col, true)  // Send move with `isWin = true` to indicate game over
+                }
             }
 
-            gameActive = false
+            return  // **Exit function to prevent further moves**
         }
 
-        // AI Moves (If enabled and it's AI's turn)
-        if (isRobotEnabled && activePlayer == 1 && gameActive) {
-            Handler().postDelayed({
-                val bestMove = findBestMove(gameState)
-                if (bestMove[0] != -1 && bestMove[1] != -1) {
-                    val img1 =
-                        getImageViewByTag(bestMove[0], bestMove[1])
-                    playerTap(bestMove[0], bestMove[1], img1)
-                }
-            }, delayTime.toLong())
+        // **Send Move to Other Player BEFORE stopping game**
+        if (isOnlineGame) {
+            CoroutineScope(Dispatchers.IO).launch {
+                publishMove(row, col, isWin)  // Send move and win info
+            }
         }
+
+        if (isWin) return  // **Stop further moves if game is over**
+
+        activePlayer = 1 - activePlayer  // Switch turns
+        isMyTurn = false  // Prevent another move until opponent moves
+
+        binding.statusTextView.text = "Waiting for Opponent..."
     }
 
-    private fun checkWin() {
+
+    private fun isBoardFull(): Boolean {
+        for (row in gameState) {
+            if (row.contains(2)) return false  // If any cell is empty, the game is not a draw
+        }
+        return true
+    }
+
+
+    private fun isWinningMove(): Boolean {
         val winPositions = generateWinPositions(gridSize)
 
         for (winPosition in winPositions) {
@@ -401,39 +436,25 @@ class MainActivity : AppCompatActivity() {
             var win = true
 
             for (i in 1 until winPosition.size) {
-                val row = winPosition[i] / gridSize
-                val col = winPosition[i] % gridSize
-                if (gameState[row][col] != firstCell || firstCell == 2) {
+                val r = winPosition[i] / gridSize
+                val c = winPosition[i] % gridSize
+                if (gameState[r][c] != firstCell || firstCell == 2) {
                     win = false
                     break
                 }
             }
 
             if (win) {
-                val winnerStr = if ((firstCell == 0)) "X has won!" else "O has won!"
-//                if (winnerStr == "X has won!") {
-//                    showWinLosePopUp("Hurrah!!!", "X has won the Game!")
-//                    wonCount++
-//                    if (wonCount == 1) {
-//                        Handler().postDelayed({ showInterstitialAd() }, 1500)
-//                    }
-//                } else {
-//                    showWinLosePopUp("Hurrah!!!", "O has won the Game!")
-//
-//                    wonCount--
-//                    if (wonCount == -2) {
-//                        Handler().postDelayed({ showInterstitialAd() }, 1500)
-//                    }
-//                }
-                binding.statusTextView.text = winnerStr
-                gameActive = false
+                gameActive = false  // **Stop the game**
                 highlightWinningCells(winPosition)
                 applyWinAnimation()
                 showHurrahAnimation()
-                return
+                return true  // **Return true if game is won**
             }
         }
+        return false
     }
+
 
     private fun aiMove() {
         val emptyCells: MutableList<IntArray> = ArrayList()
